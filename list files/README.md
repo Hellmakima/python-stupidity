@@ -25,16 +25,12 @@
 2. **Add the script to your PATH**:
 
    - **On Windows**:
-     1. Save `lsd.py` to a directory already in your PATH (e.g., `C:\Windows\System32`) or create a new directory (e.g., `C:\tools`), move `lsd.py` there, and add this directory to your PATH environment variable.
+     1. Save `lsd.exe` to a directory already in your PATH (e.g., `C:\Windows\System32`) or create a new directory (e.g., `C:\tools`), move `lsd.exe` there, and add this directory to your PATH environment variable.
      2. To add a directory to PATH:
         - Open `System Properties` > `Environment Variables`.
         - Under `System Variables`, find `Path`, click `Edit`, and add the directory.
    - **On Linux/MacOS**:
-     1. Move `lsd.py` to `/usr/local/bin`:
-        ```bash
-        sudo mv lsd.py /usr/local/bin/lsd
-        chmod +x /usr/local/bin/lsd
-        ```
+     1. There is no steps, recompile it.
 
 3. **Run the script**:
 
