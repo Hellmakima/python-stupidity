@@ -1,2 +1,2 @@
 # python-stupidity
-personal projects (failed, incomplete)
+personal projects (failed, incomplete or half-ass implementations)
