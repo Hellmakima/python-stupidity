@@ -1,0 +1,95 @@
+import pygame
+import numpy as np
+import math
+
+# Initialize Pygame
+pygame.init()
+
+# Screen setup
+screen_width, screen_height = 700, 700
+screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption("3D Cube Rotation - No Accumulation")
+clock = pygame.time.Clock()
+
+# Cube vertices (3D coordinates)
+size = 100
+depth = 500  # Distance from the viewer
+
+vertices = np.array([
+    [-size, -size, -size], [size, -size, -size],
+    [size, size, -size], [-size, size, -size],
+    [-size, -size, size], [size, -size, size],
+    [size, size, size], [-size, size, size]
+], dtype=float)
+
+# Cube edges (connecting vertices)
+edges = [
+    (0, 1), (1, 2), (2, 3), (3, 0),  # Back face
+    (4, 5), (5, 6), (6, 7), (7, 4),  # Front face
+    (0, 4), (1, 5), (2, 6), (3, 7)   # Connecting edges
+]
+
+# Function to project 3D points to 2D screen
+def project(point):
+    """Perspective projection of a 3D point to 2D screen."""
+    perspective = depth / (depth - point[2])  # Perspective scaling
+    x = int(screen_width / 2 + point[0] * perspective)
+    y = int(screen_height / 2 - point[1] * perspective)  # Invert Y for proper orientation
+    return x, y
+
+# Function to create a rotation matrix
+def rotate_matrix(axis, angle):
+    """Create a 3x3 rotation matrix for a given axis and angle."""
+    axis = axis / np.linalg.norm(axis)  # Normalize the axis
+    cos_a = math.cos(angle)
+    sin_a = math.sin(angle)
+    x, y, z = axis
+    return np.array([
+        [cos_a + x*x*(1 - cos_a), x*y*(1 - cos_a) - z*sin_a, x*z*(1 - cos_a) + y*sin_a],
+        [y*x*(1 - cos_a) + z*sin_a, cos_a + y*y*(1 - cos_a), y*z*(1 - cos_a) - x*sin_a],
+        [z*x*(1 - cos_a) - y*sin_a, z*y*(1 - cos_a) + x*sin_a, cos_a + z*z*(1 - cos_a)]
+    ])
+
+# Main loop
+running = True
+pygame.mouse.set_visible(False)
+pygame.event.set_grab(True)
+
+while running:
+    # Handle events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT or pygame.key.get_pressed()[pygame.K_ESCAPE]:
+            running = False
+
+    # Clear the screen
+    screen.fill((10, 10, 10))
+
+    # Get mouse movement
+    rel_x, rel_y = pygame.mouse.get_rel()
+
+    # Reset rotation matrix (start fresh each frame)
+    rotation_matrix = np.eye(3)
+
+    # Apply horizontal rotation (around the global Y-axis)
+    rot_y = rotate_matrix(np.array([0, 1, 0]), -rel_x * 0.01)
+    rotation_matrix = np.dot(rot_y, rotation_matrix)
+
+    # Apply vertical rotation (around the global X-axis)
+    rot_x = rotate_matrix(np.array([1, 0, 0]), -rel_y * 0.01)
+    rotation_matrix = np.dot(rot_x, rotation_matrix)
+
+    # Transform vertices using the current rotation matrix
+    vertices = [np.dot(rotation_matrix, vertex) for vertex in vertices]
+
+    # Draw the cube edges
+    for edge in edges:
+        start = project(vertices[edge[0]])
+        end = project(vertices[edge[1]])
+        pygame.draw.line(screen, (200, 200, 200), start, end, 2)
+
+    # Update the display
+    pygame.display.flip()
+    clock.tick(60)
+
+# Quit Pygame
+pygame.quit()
