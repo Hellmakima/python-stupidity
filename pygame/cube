@@ -52,8 +52,8 @@ def rotate_matrix(axis, angle):
 
 # Main loop
 running = True
-pygame.mouse.set_visible(False)
-pygame.event.set_grab(True)
+# pygame.mouse.set_visible(False)
+# pygame.event.set_grab(True)
 
 while running:
     # Handle events
@@ -71,11 +71,11 @@ while running:
     rotation_matrix = np.eye(3)
 
     # Apply horizontal rotation (around the global Y-axis)
-    rot_y = rotate_matrix(np.array([0, 1, 0]), -rel_x * 0.01)
+    rot_y = rotate_matrix(np.array([0, 1, 0]), rel_x * 0.01)
     rotation_matrix = np.dot(rot_y, rotation_matrix)
 
     # Apply vertical rotation (around the global X-axis)
-    rot_x = rotate_matrix(np.array([1, 0, 0]), -rel_y * 0.01)
+    rot_x = rotate_matrix(np.array([1, 0, 0]), rel_y * 0.01)
     rotation_matrix = np.dot(rot_x, rotation_matrix)
 
     # Transform vertices using the current rotation matrix
