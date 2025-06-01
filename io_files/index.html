@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brain Buffet</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: #0a0a14;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .word {
+      z-index: 3;
+      position: absolute;
+      font-size: 20px;
+      color: white; /* Changed to solid white */
+      user-select: none;
+      white-space: nowrap;
+      opacity: 0;
+      animation: fadeInOut 5s forwards;
+      text-shadow: none; /* Removed default glow */
+      transition: all 0.3s ease; /* Changed to 'all' for smoother transitions */
+    }
+
+    .word:hover {
+      transform: scale(1.2);
+      z-index: 4;
+      text-shadow: 0 0 15px gold; /* Glow only appears on hover */
+    }
+
+    @keyframes fadeInOut {
+      0% {
+        opacity: 0;
+        transform: translate3d(0, 0, 0);
+      }
+      50% {
+        opacity: 1;
+        transform: translate3d(var(--end-x), var(--end-y), 0);
+      }
+      100% {
+        opacity: 0;
+        transform: translate3d(var(--end-x), var(--end-y), 0);
+      }
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    
+    #cubeCanvas {
+      z-index: 2;
+    }
+    
+    #starCanvas {
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <!-- Star Field Canvas -->
+  <canvas id="starCanvas"></canvas>
+  
+  <!-- 3D Cube Canvas -->
+  <canvas id="cubeCanvas"></canvas>
+  
+  <script>
+    // ===== STAR FIELD SYSTEM =====
+    const starCanvas = document.getElementById('starCanvas');
+    const starCtx = starCanvas.getContext('2d');
+    
+    function resizeStarCanvas() {
+      starCanvas.width = window.innerWidth;
+      starCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeStarCanvas);
+    resizeStarCanvas();
+    
+    const STAR_CENTER = { x: starCanvas.width/2, y: starCanvas.height/2 };
+    let starOffset = { x: 0, y: 0 };
+    let stars = [];
+    let totalMouseMovement = { x: 0, y: 0 };
+    
+    function starGetPosition(star) {
+      let x = star.x;
+      let y = star.y;
+      
+      // Slight parallax effect
+      x -= starOffset.x * 0.02;
+      y -= starOffset.y * 0.02;
+      
+      if (x < 0 || x > starCanvas.width || y < 0 || y > starCanvas.height) {
+        return null;
+      }
+      
+      const centerX = STAR_CENTER.x + starOffset.x;
+      const centerY = STAR_CENTER.y + starOffset.y;
+      const dx = centerX - x;
+      const dy = centerY - y;
+      
+      // Pull stars toward center slightly
+      x -= dx * 0.05;
+      y -= dy * 0.05;
+      
+      // If not already calculated, assign maxSize based on distance from center
+      if (star.maxSize === 0) {
+        const finalDistance = Math.sqrt(
+          Math.pow(x - centerX, 2) + 
+          Math.pow(y - centerY, 2)
+        );
+        star.maxSize = Math.min(3, 1 + finalDistance / 100);
+      }
+
+      return { x, y };
+    }
+    
+    function makeStars(num) {
+      const newStars = [];
+      for (let i = 0; i < num; i++) {
+        newStars.push({
+          x: Math.random() * starCanvas.width,
+          y: Math.random() * starCanvas.height,
+          age: 0,       // Track star age
+          maxSize: 0,   // Will be calculated based on final distance
+          growthRate: Math.random() * 0.05 + 0.02 // Random growth speed
+        });
+      }
+      return newStars;
+    }
+    
+    function starGetThickness(star) {
+      const dx = star.x - (STAR_CENTER.x + starOffset.x);
+      const dy = star.y - (STAR_CENTER.y + starOffset.y);
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      return Math.min(3, 1 + distance / 100);
+    }
+    
+    function drawStars() {
+      // Fade previous frame
+      starCtx.fillStyle = 'rgba(0, 0, 0, 0.2)'; // Less opaque dark blue
+      starCtx.fillRect(0, 0, starCanvas.width, starCanvas.height);
+      
+      // Move background based on mouse
+      starOffset.x += totalMouseMovement.x;
+      starOffset.y += totalMouseMovement.y;
+      
+      // Apply bounds
+      starOffset.x = Math.max(-starCanvas.width/2, Math.min(starCanvas.width/2, starOffset.x));
+      starOffset.y = Math.max(-starCanvas.height/2, Math.min(starCanvas.height/2, starOffset.y));
+      
+      // Apply damping
+      starOffset.x *= 0.99;
+      starOffset.y *= 0.99;
+      
+      // Add new stars
+      stars = [...stars, ...makeStars(5)];
+      
+      // Update and draw stars
+      const newStars = [];
+      for (const star of stars) {
+        const oldPos = { x: star.x, y: star.y };
+        const newPos = starGetPosition(star);
+        
+        if (newPos !== null) {
+          star.x = newPos.x;
+          star.y = newPos.y;
+          star.age += 1;
+
+          const currentSize = Math.min(
+            star.maxSize, 
+            star.maxSize * (star.age * star.growthRate)
+          );
+          
+          starCtx.beginPath();
+          starCtx.strokeStyle = `rgba(255, 255, 255, ${0.3 + currentSize/10})`;
+          starCtx.lineWidth = currentSize;
+          starCtx.moveTo(oldPos.x, oldPos.y);
+          starCtx.lineTo(newPos.x, newPos.y);
+          starCtx.stroke();
+          
+          newStars.push(star);
+        }
+      }
+      
+      stars = newStars;
+      
+      // Reset mouse movement for next frame
+      totalMouseMovement = { x: 0, y: 0 };
+      
+      requestAnimationFrame(drawStars);
+    }
+    
+    // Initialize stars
+    stars = makeStars(200);
+    drawStars();
+
+    // ===== 3D CUBE SYSTEM =====
+    const cubeCanvas = document.getElementById('cubeCanvas');
+    const ctx = cubeCanvas.getContext('2d');
+    
+    function resizeCubeCanvas() {
+      cubeCanvas.width = window.innerWidth;
+      cubeCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCubeCanvas);
+    resizeCubeCanvas();
+    
+    // Cube vertices (3D coordinates)
+    const size = 100;
+    let vertices = [
+      [-size, -size, -size], [size, -size, -size],
+      [size, size, -size], [-size, size, -size],
+      [-size, -size, size], [size, -size, size],
+      [size, size, size], [-size, size, size]
+    ];
+    
+    // Store original vertices for reference
+    const originalVertices = JSON.parse(JSON.stringify(vertices));
+    
+    // Cube edges (connecting vertices)
+    const edges = [
+      [0, 1], [1, 2], [2, 3], [3, 0],
+      [4, 5], [5, 6], [6, 7], [7, 4],
+      [0, 4], [1, 5], [2, 6], [3, 7]
+    ];
+    
+    let rotationMatrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+    let cubeRotationAccum = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+    
+    function project(point) {
+      const depth = 500;
+      const perspective = depth / (depth - point[2]);
+      const x = cubeCanvas.width / 2 + point[0] * perspective;
+      const y = cubeCanvas.height / 2 - point[1] * perspective;
+      return [x, y];
+    }
+    
+    function rotateMatrix(axis, angle) {
+      const [x, y, z] = axis;
+      const cosA = Math.cos(angle);
+      const sinA = Math.sin(angle);
+      return [
+        [cosA + x * x * (1 - cosA), x * y * (1 - cosA) - z * sinA, x * z * (1 - cosA) + y * sinA],
+        [y * x * (1 - cosA) + z * sinA, cosA + y * y * (1 - cosA), y * z * (1 - cosA) - x * sinA],
+        [z * x * (1 - cosA) - y * sinA, z * y * (1 - cosA) + x * sinA, cosA + z * z * (1 - cosA)]
+      ];
+    }
+    
+    function multiplyMatrices(a, b) {
+      const result = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+      for (let i = 0; i < 3; i++)
+        for (let j = 0; j < 3; j++)
+          for (let k = 0; k < 3; k++)
+            result[i][j] += a[i][k] * b[k][j];
+      return result;
+    }
+    
+    function multiplyMatrixVector(matrix, vector) {
+      return [
+        matrix[0][0] * vector[0] + matrix[0][1] * vector[1] + matrix[0][2] * vector[2],
+        matrix[1][0] * vector[0] + matrix[1][1] * vector[1] + matrix[1][2] * vector[2],
+        matrix[2][0] * vector[0] + matrix[2][1] * vector[1] + matrix[2][2] * vector[2]
+      ];
+    }
+    
+    function drawCube() {
+      ctx.clearRect(0, 0, cubeCanvas.width, cubeCanvas.height);
+      
+      // Calculate frame rotation
+      const rotY = rotateMatrix([0, 1, 0], mouseX * 0.01);
+      const rotX = rotateMatrix([1, 0, 0], mouseY * 0.01);
+      const frameRotation = multiplyMatrices(rotY, rotX);
+      
+      // Accumulate rotation
+      cubeRotationAccum = multiplyMatrices(frameRotation, cubeRotationAccum);
+      
+      // Apply accumulated rotation to original vertices
+      const rotatedVertices = originalVertices.map(vertex => 
+        multiplyMatrixVector(cubeRotationAccum, vertex)
+      );
+      
+      // Draw cube edges
+      for (const edge of edges) {
+        const p1 = rotatedVertices[edge[0]];
+        const p2 = rotatedVertices[edge[1]];
+        
+        if (p1[2] < 0 && p2[2] < 0) {
+          ctx.setLineDash([5, 5]);
+          ctx.strokeStyle = 'rgba(85, 85, 85, 0.7)';
+        } else {
+          ctx.setLineDash([]);
+          ctx.strokeStyle =  'rgba(224, 224, 224, 0.8)';
+        }
+        
+        const [x1, y1] = project(p1);
+        const [x2, y2] = project(p2);
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      
+      requestAnimationFrame(drawCube);
+    }
+    
+    let mouseX = 0, mouseY = 0;
+    let initialTouchX = null;
+    let initialTouchY = null;
+    
+    cubeCanvas.addEventListener('mousemove', (e) => {
+      mouseX = e.movementX;
+      mouseY = e.movementY;
+      totalMouseMovement.x += e.movementX;
+      totalMouseMovement.y += e.movementY;
+    });
+    
+    cubeCanvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length > 0) {
+        initialTouchX = e.touches[0].clientX;
+        initialTouchY = e.touches[0].clientY;
+      }
+    }, { passive: false });
+    
+    cubeCanvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (initialTouchX === null || initialTouchY === null) {
+        return;
+      }
+      
+      if (e.touches.length > 0) {
+        const currentTouchX = e.touches[0].clientX;
+        const currentTouchY = e.touches[0].clientY;
+        
+        mouseX = currentTouchX - initialTouchX;
+        mouseY = currentTouchY - initialTouchY;
+        
+        totalMouseMovement.x += mouseX;
+        totalMouseMovement.y += mouseY;
+        
+        initialTouchX = currentTouchX;
+        initialTouchY = currentTouchY;
+      }
+    }, { passive: false });
+    
+    cubeCanvas.addEventListener('touchend', () => {
+      initialTouchX = null;
+      initialTouchY = null;
+    });
+    
+    drawCube();
+
+    // ===== FLOATING CUISINE WORDS =====
+    const words = [
+      'Sushi', 'Ramen', 'Sashimi', 'Tempura', 'Mochi', 'Tonkatsu', 'Katsu Curry', 'Maki Rolls',
+      'Dim Sum', 'Peking Duck', 'Chow Mein', 'Spring Rolls', 'Sichuan Hot Pot', 'Chinese BBQ Ribs', 'Mapo Tofu',
+      'Biryani', 'Butter Chicken', 'Chole Bhature', 'Pav Bhaji', 'Aloo Paratha', 'Dal Tadka', 'Malai Kofta', 'Vada Pav', 
+      'Puri Bhaji', 'Hyderabadi Biryani', 'Kachori', 'Gajar Halwa', 'Dhokla', 'Bhel Puri', 'Kheer', 'Jalebi', 
+      'Mysore Pak', 'Gulab Jamun', 'Khichdi', 'Baingan Bharta', 'Shahi Tukda', 'Masala Dosa', 'Loni Dosa', 
+      'Bhindi Masala', 'Pulao',
+      'Kimchi', 'Bibimbap', 'Tteokbokki', 'Japchae', 'Korean BBQ', 'Jjajangmyeon', 'Samgyetang',
+      'Pad Thai', 'Tom Yum Soup', 'Green Curry', 'Mango Sticky Rice', 'Som Tam', 'Massaman Curry',
+      'Pho', 'Banh Mi', 'Goi Cuon', 'Bun Cha',
+      'Fettuccine Alfredo', 'Lasagna', 'Risotto', 'Tiramisu', 'Pizza Margherita', 'Gelato',
+      'Croissant', 'Ratatouille', 'Coq au Vin', 'Crème Brûlée', 'Baguette', 'Quiche Lorraine',
+      'Tacos', 'Fajitas', 'Enchiladas', 'Tamales', 'Churros', 'Mole Poblano',
+      'Apple Pie', 'Lobster Roll', 'Buffalo Wings', 'Mac and Cheese', 'BBQ Ribs',
+      'Kebabs', 'Hummus', 'Falafel', 'Shawarma', 'Baklava', 'Mansaf',
+      'Beef Wellington', 'Fish and Chips', 'Shepherd’s Pie', 'Sticky Toffee Pudding',
+      'Feijoada', 'Pão de Queijo', 'Brigadeiro',
+      'Paella', 'Churros', 'Tortilla Española',
+      'Custard Tart', 'Bacalhau à Brás',
+      'Moussaka', 'Souvlaki', 'Spanakopita',
+      'Lahmacun', 'Turkish Delight', 'Iskender Kebab',
+      'Bratwurst', 'Pretzel', 'Sauerbraten',
+      'Borscht', 'Pelmeni', 'Beef Stroganoff',
+    ];
+    
+    function generateWord() {
+      const currentWords = document.querySelectorAll('.word');
+      if (currentWords.length >= 25) return;
+      
+      const word = words[Math.floor(Math.random() * words.length)];
+      const wordElement = document.createElement('div');
+      
+      const size = Math.random() * (40 - 18) + 18;
+      const rotation = Math.random() * 360;
+      const xPos = Math.random() * 100;
+      const yPos = Math.random() * 100;
+      const randomX = Math.random() * 200 - 100;
+      const randomY = Math.random() * 200 - 100;
+      
+      wordElement.classList.add('word');
+      wordElement.innerHTML = `<a 
+        href="https://www.google.com/search?q=${encodeURIComponent(word)}+food&tbm=isch" 
+        target="_blank"
+        
+        style="text-decoration: none; color: white; transition: all 0.3s;">
+        ${word}</a>`;
+
+      wordElement.style.fontSize = `${size}px`;
+      wordElement.style.left = `${xPos}vw`;
+      wordElement.style.top = `${yPos}vh`;
+      wordElement.style.transform = `rotate(${rotation}deg)`;
+      wordElement.style.setProperty('--end-x', `${randomX}vw`);
+      wordElement.style.setProperty('--end-y', `${randomY}vh`);
+      
+      document.body.appendChild(wordElement);
+      
+      setTimeout(() => wordElement.remove(), 5000);
+    }
+    
+    setInterval(generateWord, 300);
+  </script>
+</body>
+</html>
