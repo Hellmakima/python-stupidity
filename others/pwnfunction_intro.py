@@ -1,75 +1,70 @@
 import os
 import time
+import random
 
 RED = '\033[1;91m'
 CYAN = '\033[1;96m'
 RESET = '\033[0m'
 
-name1 = b"Pwn"
-name2 = b"Function"
+name1 = b"Sufiyan"
+name2 = b"Attar"
+revealed1 = set()
+revealed2 = set()
 
-def colorize_ascii(ascii_str, offset, pos):
-    result = ""
-    name1_pos = pos
-    name2_pos = pos + 20
-    name1_len = len(name1)
-    name2_len = len(name2)
-
-    for i, char in enumerate(ascii_str):
+def colorize_ascii(ascii_str, offset, pos, len1, len2):
+    out = []
+    for i, c in enumerate(ascii_str):
         global_pos = offset + i
-        if name1_pos <= global_pos < name1_pos + name1_len:
-            result += f"{RED}{char}{RESET}"
-        elif name2_pos <= global_pos < name2_pos + name2_len:
-            result += f"{CYAN}{char}{RESET}"
+        if pos <= global_pos < pos + len1:
+            out.append(f"{RED}{c}{RESET}")
+        elif pos + 20 <= global_pos < pos + 20 + len2:
+            out.append(f"{CYAN}{c}{RESET}")
         else:
-            result += char
-    return result
+            out.append(c)
+    return ''.join(out)
 
-def colorize_hex(chunk, offset, pos):
-    result = []
-    name1_pos = pos
-    name2_pos = pos + 20
-    name1_len = len(name1)
-    name2_len = len(name2)
-
+def colorize_hex(chunk, offset, pos, len1, len2):
+    out = []
     for i, b in enumerate(chunk):
         global_pos = offset + i
-        hex_byte = f'{b:02X}'
-        if name1_pos <= global_pos < name1_pos + name1_len:
-            result.append(f"{RED}{hex_byte}{RESET}")
-        elif name2_pos <= global_pos < name2_pos + name2_len:
-            result.append(f"{CYAN}{hex_byte}{RESET}")
+        h = f'{b:02X}'
+        if pos <= global_pos < pos + len1:
+            out.append(f"{RED}{h}{RESET}")
+        elif pos + 20 <= global_pos < pos + 20 + len2:
+            out.append(f"{CYAN}{h}{RESET}")
         else:
-            result.append(hex_byte)
-    return ' '.join(result)
+            out.append(h)
+    return ' '.join(out)
 
-def hexdump(data, pos, width=16):
+def hexdump(data, pos, len1, len2, width=16):
     for offset in range(0, len(data), width):
         chunk = data[offset:offset + width]
-        hex_bytes = colorize_hex(chunk, offset, pos)
-        ascii = ''.join(chr(b) if 32 <= b < 127 else '.' for b in chunk)
-        colored_ascii = colorize_ascii(ascii, offset, pos)
-        print(f'{offset:08X}  {hex_bytes:<{width*3}} {colored_ascii}')
-import random
+        hex_str = colorize_hex(chunk, offset, pos, len1, len2)
+        ascii_str = ''.join(chr(b) if 32 <= b < 127 else '.' for b in chunk)
+        ascii_col = colorize_ascii(ascii_str, offset, pos, len1, len2)
+        print(f'{offset:08X}  {hex_str:<{width*3}} {ascii_col}')
 
-def scramble(name, intensity):
-    # intensity: 0 = fully scrambled, 20 = fully clear
-    name = bytearray(name)
-    keep_amt = min(intensity, len(name))
-    indices_to_keep = random.sample(range(len(name)), keep_amt)
-    for i in range(len(name)):
-        if i not in indices_to_keep:
-            name[i] = random.randint(33, 126)
-    return bytes(name)
+def scramble_stateful(original, intensity, revealed):
+    total = len(original)
+    target = min(intensity, total)
+    unrevealed = [i for i in range(total) if i not in revealed]
+    revealed.update(random.sample(unrevealed, max(0, target - len(revealed))))
+    return bytes(
+        original[i] if i in revealed else random.randint(33, 126)
+        for i in range(total)
+    ), revealed
 
 size = 512 + 16*5
+pos = size - 252
+len1 = len(name1)
+len2 = len(name2)
+
 for i in range(40):
+    n1, revealed1 = scramble_stateful(name1, i, revealed1)
+    n2, revealed2 = scramble_stateful(name2, i, revealed2)
     data = bytearray(os.urandom(size))
-    n1 = scramble(name1, i)
-    n2 = scramble(name2, i)
-    pos = size - 252 #+ i * 16
-    data[pos:pos+len(n1)] = n1
-    data[pos+20:pos+20+len(n2)] = n2
-    hexdump(data, pos)
+    data[pos:pos+len1] = n1
+    data[pos+20:pos+20+len2] = n2
+    hexdump(data, pos, len1, len2)
     print()
     time.sleep(0.2)
