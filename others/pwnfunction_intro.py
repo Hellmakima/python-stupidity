@@ -62,11 +62,12 @@ size = 512 + 16*5
 pos = size - 252
 len1 = len(name1)
 len2 = len(name2)
+random_data = bytearray(os.urandom(size+40*16))
 
 for i in range(40):
     n1, revealed1 = scramble_stateful(name1, i, revealed1)
     n2, revealed2 = scramble_stateful(name2, i, revealed2)
-    data = bytearray(os.urandom(size))
+    data = random_data[i*16:i*16+size]
     data[pos:pos+len1] = n1
     data[pos+20:pos+20+len2] = n2
     hexdump(data, pos, len1, len2)
