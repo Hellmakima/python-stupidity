@@ -37,18 +37,22 @@ def colorize_hex(chunk, offset, pos, len1, len2):
     return ' '.join(out)
 
 def hexdump(data, pos, len1, len2, width=16):
+    a = ''
     for offset in range(0, len(data), width):
         chunk = data[offset:offset + width]
         hex_str = colorize_hex(chunk, offset, pos, len1, len2)
         ascii_str = ''.join(chr(b) if 32 <= b < 127 else '.' for b in chunk)
         ascii_col = colorize_ascii(ascii_str, offset, pos, len1, len2)
-        print(f'{offset:08X}  {hex_str:<{width*3}} {ascii_col}')
-
-def scramble_stateful(original, intensity, revealed):
+        a += f'{offset:08X}  {hex_str:<{width*3}} {ascii_col}\n'
+    print(a[:-1], end='')
+def scramble_stateful(original, frame, revealed):
     total = len(original)
-    target = min(intensity, total)
-    unrevealed = [i for i in range(total) if i not in revealed]
-    revealed.update(random.sample(unrevealed, max(0, target - len(revealed))))
+    target = min(frame, total)
+    # Reveal at most 1 new character every 2-3 frames
+    if len(revealed) < target:
+        unrevealed = [i for i in range(total) if i not in revealed]
+        if unrevealed and random.random() < 0.4:  # 40% chance to reveal one
+            revealed.add(random.choice(unrevealed))
     return bytes(
         original[i] if i in revealed else random.randint(33, 126)
         for i in range(total)
@@ -66,5 +70,4 @@ for i in range(40):
     data[pos:pos+len1] = n1
     data[pos+20:pos+20+len2] = n2
     hexdump(data, pos, len1, len2)
-    print()
     time.sleep(0.2)
