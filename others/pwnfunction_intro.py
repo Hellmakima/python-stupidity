@@ -6,10 +6,24 @@ RED = '\033[1;91m'
 CYAN = '\033[1;96m'
 RESET = '\033[0m'
 
-name1 = b"Sufiyan"
-name2 = b"Attar"
+name1 = b"Hell"
+name2 = b"Makima"
+# gap between words
+# GAP = 20
+GAP = 11
+
+# total terminal size
+size = 512 + 16*5
+# text offset
+# pos = size - 252
+pos = size - 246
+
+len1 = len(name1)
+len2 = len(name2)
 revealed1 = set()
 revealed2 = set()
+random_data = bytearray(os.urandom(size+40*16))
+
 
 def colorize_ascii(ascii_str, offset, pos, len1, len2):
     out = []
@@ -17,7 +31,7 @@ def colorize_ascii(ascii_str, offset, pos, len1, len2):
         global_pos = offset + i
         if pos <= global_pos < pos + len1:
             out.append(f"{RED}{c}{RESET}")
-        elif pos + 20 <= global_pos < pos + 20 + len2:
+        elif pos + GAP <= global_pos < pos + GAP + len2:
             out.append(f"{CYAN}{c}{RESET}")
         else:
             out.append(c)
@@ -30,7 +44,7 @@ def colorize_hex(chunk, offset, pos, len1, len2):
         h = f'{b:02X}'
         if pos <= global_pos < pos + len1:
             out.append(f"{RED}{h}{RESET}")
-        elif pos + 20 <= global_pos < pos + 20 + len2:
+        elif pos + GAP <= global_pos < pos + GAP + len2:
             out.append(f"{CYAN}{h}{RESET}")
         else:
             out.append(h)
@@ -58,17 +72,14 @@ def scramble_stateful(original, frame, revealed):
         for i in range(total)
     ), revealed
 
-size = 512 + 16*5
-pos = size - 252
-len1 = len(name1)
-len2 = len(name2)
-random_data = bytearray(os.urandom(size+40*16))
+for i in range(2):
+    data
 
 for i in range(40):
     n1, revealed1 = scramble_stateful(name1, i, revealed1)
     n2, revealed2 = scramble_stateful(name2, i, revealed2)
     data = random_data[i*16:i*16+size]
     data[pos:pos+len1] = n1
-    data[pos+20:pos+20+len2] = n2
+    data[pos+GAP:pos+GAP+len2] = n2
     hexdump(data, pos, len1, len2)
     time.sleep(0.2)
