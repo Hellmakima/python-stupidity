@@ -10,7 +10,7 @@ LOCAL_TZ = ZoneInfo("Asia/Kolkata")
 def is_office_open(dept: str) -> bool:
     now = datetime.now(LOCAL_TZ).time()
 
-    if dept in ("recruitment", "sales"):
+    if dept in ("recruitment", "sales", "Executive Manager"):
         return now >= time(18, 0) or now < time(6, 0)  # 6AM–6PM
     else:
         return time(9, 0) <= now < time(21, 0)  # 9AM–9PM
@@ -119,7 +119,7 @@ def handle_menu():
     if not is_office_open(dept):
         offshore_working_hours = "8:30 AM to 8:30 PM"
         onshore_working_hours = "11:30 AM to 11:30 PM"
-        working_hours = offshore_working_hours if dept in ("recruitment", "sales") else onshore_working_hours
+        working_hours = offshore_working_hours if dept in ("recruitment", "sales", "Executive Manager") else onshore_working_hours
 
         time_statement = (
             f"The {dept.title()} team is currently unavailable. "
