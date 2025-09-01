@@ -1,6 +1,20 @@
 from flask import Flask, request, jsonify
+from datetime import datetime, time
+from zoneinfo import ZoneInfo
 
 app = Flask(__name__)
+
+LOCAL_TZ = ZoneInfo("Asia/Kolkata")
+
+# ---------- Helper function to see if office is open ----------
+def is_office_open(dept: str) -> bool:
+    now = datetime.now(LOCAL_TZ).time()
+
+    if dept in ("recruitment", "sales"):
+        return time(6, 0) <= now < time(18, 0)  # 6AM–6PM
+    else:
+        return time(9, 0) <= now < time(21, 0)  # 9AM–9PM
+
 
 # ---------- Helper function to safely extract DTMF ----------
 def get_dtmf_from_request(req):
@@ -8,9 +22,6 @@ def get_dtmf_from_request(req):
     data = req.get_json(silent=True)
     if not data:
         data = req.form.to_dict()
-
-    print("RAW BODY:", req.data.decode())
-    print("PARSED DATA:", data)
 
     if isinstance(data.get("dtmf"), dict):
         return data["dtmf"].get("digits")
@@ -103,6 +114,24 @@ def handle_menu():
         ])
 
     dept = dept_map[dtmf]
+
+    # check business hours before showing submenu
+    if not is_office_open(dept):
+        return jsonify([
+            {
+                "action": "talk",
+                "text": f"The {dept.title()} team is currently unavailable. "
+                        "Please leave a message after the beep."
+            },
+            {
+                "action": "record",
+                "endOnSilence": 3,
+                "endOnKey": "#",
+                "beepStart": True,
+                "eventUrl": [f"{request.url_root}event"]
+            }
+        ])
+
     people = DEPARTMENTS[dept]
 
     # Build dynamic submenu text based on available employees
@@ -138,7 +167,7 @@ def connect_person(dept):
             {"action": "talk", "text": f"Connecting you to {person['name']}."},
             {
                 "action": "connect",
-                "from": "17325268057",  # Replace with your Vonage virtual number
+                "from": "17325268057",
                 "endpoint": [{"type": "phone", "number": person['number']}]
             }
         ]
@@ -161,7 +190,9 @@ def connect_person(dept):
 # ---------- Event webhook ----------
 @app.route("/event", methods=["POST"])
 def event():
-    print("EVENT:", request.get_json(silent=True) or request.form.to_dict())
+    payload = request.get_json(silent=True) or request.form.to_dict()
+    with open("calls.log", "a") as f:
+        f.write(f"EVENT: {payload}\n")
     return "", 200
 
 
@@ -172,4 +203,4 @@ def test():
 
 
 if __name__ == "__main__":
-    app.run(port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)
