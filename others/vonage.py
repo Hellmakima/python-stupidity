@@ -11,7 +11,7 @@ def is_office_open(dept: str) -> bool:
     now = datetime.now(LOCAL_TZ).time()
 
     if dept in ("recruitment", "sales"):
-        return time(6, 0) <= now < time(18, 0)  # 6AM–6PM
+        return now >= time(18, 0) or now < time(6, 0)  # 6AM–6PM
     else:
         return time(9, 0) <= now < time(21, 0)  # 9AM–9PM
 
@@ -117,11 +117,20 @@ def handle_menu():
 
     # check business hours before showing submenu
     if not is_office_open(dept):
+        offshore_working_hours = "8:30 AM to 8:30 PM"
+        onshore_working_hours = "11:30 AM to 11:30 PM"
+        working_hours = onshore_working_hours if dept in ("recruitment", "sales") else offshore_working_hours
+
+        time_statement = (
+            f"The {dept.title()} team is currently unavailable. "
+            f"Please try calling between {working_hours}, "
+            "or leave a message after the beep."
+        )
+
         return jsonify([
             {
                 "action": "talk",
-                "text": f"The {dept.title()} team is currently unavailable. "
-                        "Please leave a message after the beep."
+                "text": time_statement
             },
             {
                 "action": "record",
@@ -131,6 +140,7 @@ def handle_menu():
                 "eventUrl": [f"{request.url_root}event"]
             }
         ])
+
 
     people = DEPARTMENTS[dept]
 
