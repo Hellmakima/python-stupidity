@@ -8,6 +8,7 @@ LOCAL_TZ = ZoneInfo("Asia/Kolkata")
 
 # ---------- Helper function to see if office is open ----------
 def is_office_open(dept: str) -> bool:
+    return True # These changes are reverted
     now = datetime.now(LOCAL_TZ).time()
 
     if dept in ("recruitment", "sales", "Executive Manager"):
@@ -141,7 +142,6 @@ def handle_menu():
             }
         ])
 
-
     people = DEPARTMENTS[dept]
 
     # Build dynamic submenu text based on available employees
@@ -201,8 +201,9 @@ def connect_person(dept):
 @app.route("/event", methods=["POST"])
 def event():
     payload = request.get_json(silent=True) or request.form.to_dict()
-    with open("calls.log", "a") as f:
-        f.write(f"EVENT: {payload}\n")
+    if payload:
+        with open("calls.log", "a") as f:
+            f.write(f"EVENT: {payload}\n")
     return "", 200
 
 
