@@ -8,11 +8,10 @@ LOCAL_TZ = ZoneInfo("Asia/Kolkata")
 
 # ---------- Helper function to see if office is open ----------
 def is_office_open(dept: str) -> bool:
-    return True # These changes are reverted
     now = datetime.now(LOCAL_TZ).time()
 
     if dept in ("recruitment", "sales", "Executive Manager"):
-        return now >= time(18, 0) or now < time(6, 0)  # 6AM–6PM
+        return now >= time(18, 0) or now < time(3, 0)  # 6AM–3PM
     else:
         return time(9, 0) <= now < time(21, 0)  # 9AM–9PM
 
@@ -97,7 +96,7 @@ def handle_menu():
         "2": "sales",
         "3": "it",
         "4": "accounts",
-        "5": "hr"
+        "5": "h r"
     }
 
     if dtmf not in dept_map:
@@ -118,7 +117,7 @@ def handle_menu():
 
     # check business hours before showing submenu
     if not is_office_open(dept):
-        offshore_working_hours = "8:30 AM to 8:30 PM"
+        offshore_working_hours = "8:30 AM to 5:30 PM"
         onshore_working_hours = "11:30 AM to 11:30 PM"
         working_hours = offshore_working_hours if dept in ("recruitment", "sales", "Executive Manager") else onshore_working_hours
 
@@ -198,7 +197,7 @@ def connect_person(dept):
 
 
 # ---------- Event webhook ----------
-@app.route("/event", methods=["POST"])
+@app.route("/event", methods=["GET", "POST"])
 def event():
     payload = request.get_json(silent=True) or request.form.to_dict()
     if payload:
