@@ -117,8 +117,8 @@ def handle_menu():
 
     # check business hours before showing submenu
     if not is_office_open(dept):
-        offshore_working_hours = "8:30 AM to 5:30 PM"
-        onshore_working_hours = "11:30 AM to 11:30 PM"
+        offshore_working_hours = "9 AM to 5 PM"
+        onshore_working_hours = "11 30 AM to 11 30 PM"
         working_hours = offshore_working_hours if dept in ("recruitment", "sales", "Executive Manager") else onshore_working_hours
 
         time_statement = (
