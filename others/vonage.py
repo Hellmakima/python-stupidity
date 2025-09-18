@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from datetime import datetime, time
 from zoneinfo import ZoneInfo
 
@@ -61,20 +61,29 @@ DEPARTMENTS = {
 }
 
 
+@app.route("/audio", methods=["GET"])
+def audio():
+    return send_from_directory(".", "song.mp3")
+
 # ---------- Main IVR menu ----------
 @app.route("/answer", methods=["GET"])
 def answer_call():
     ncco = [
+        # {
+        #     "action": "talk",
+        #     "text": (
+        #         "Thank you for calling T Cognition. "
+        #         "Press 1 to speak with our Recruitment team. "
+        #         "Press 2 for Sales. "
+        #         "Press 3 for IT Support. "
+        #         "Press 4 for Accounts and Billing. "
+        #         "Press 5 for HR and Careers."
+        #     ),
+        #     "bargeIn": True
+        # },
         {
-            "action": "talk",
-            "text": (
-                "Thank you for calling T Cognition. "
-                "Press 1 to speak with our Recruitment team. "
-                "Press 2 for Sales. "
-                "Press 3 for IT Support. "
-                "Press 4 for Accounts and Billing. "
-                "Press 5 for HR and Careers."
-            ),
+            "action": "stream",
+            "streamUrl": [f"{request.url_root}audio"],
             "bargeIn": True
         },
         {
