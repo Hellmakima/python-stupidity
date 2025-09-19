@@ -80,7 +80,7 @@ def answer_call():
                 "Press 5 for HR and Careers."
             ),
             "bargeIn": True,
-            "language": "en-IN",  # 👈 THIS IS THE KEY
+            "language": "en-IN",
             "style": 1 # Optional 
             # More: https://developer.vonage.com/en/voice/voice-api/concepts/text-to-speech#supported-languages
         },
@@ -164,7 +164,9 @@ def handle_menu():
         {
             "action": "talk",
             "text": employee_text,
-            "bargeIn": True
+            "bargeIn": True,
+            "language": "en-IN",
+            "style": 1
         },
         {
             "action": "input",
