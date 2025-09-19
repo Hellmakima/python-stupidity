@@ -142,7 +142,9 @@ def handle_menu():
         return jsonify([
             {
                 "action": "talk",
-                "text": time_statement
+                "text": time_statement,
+                "language": "en-IN",
+                "style": 1
             },
             {
                 "action": "record",
@@ -187,7 +189,12 @@ def connect_person(dept):
     if dtmf in people:
         person = people[dtmf]
         ncco = [
-            {"action": "talk", "text": f"Connecting you to {person['name']}."},
+            {
+                "action": "talk", 
+                "text": f"Connecting you to {person['name']}.",
+                "language": "en-IN",
+                "style": 1
+            },
             {
                 "action": "connect",
                 "from": "17325268057",
@@ -199,7 +206,9 @@ def connect_person(dept):
         return jsonify([
             {
                 "action": "talk",
-                "text": f"Invalid option in {dept.title()} Department. Please try again."
+                "text": f"Invalid option in {dept.title()} Department. Please try again.",
+                "language": "en-IN",
+                "style": 1
             },
             {
                 "action": "input",
