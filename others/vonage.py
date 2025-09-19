@@ -69,23 +69,26 @@ def audio():
 @app.route("/answer", methods=["GET"])
 def answer_call():
     ncco = [
+        {
+            "action": "talk",
+            "text": (
+                "Thank you for calling T Cognition. "
+                "Press 1 to speak with our Recruitment team. "
+                "Press 2 for Sales. "
+                "Press 3 for IT Support. "
+                "Press 4 for Accounts and Billing. "
+                "Press 5 for HR and Careers."
+            ),
+            "bargeIn": True,
+            "language": "en-IN",  # 👈 THIS IS THE KEY
+            "style": 1 # Optional 
+            # More: https://developer.vonage.com/en/voice/voice-api/concepts/text-to-speech#supported-languages
+        },
         # {
-        #     "action": "talk",
-        #     "text": (
-        #         "Thank you for calling T Cognition. "
-        #         "Press 1 to speak with our Recruitment team. "
-        #         "Press 2 for Sales. "
-        #         "Press 3 for IT Support. "
-        #         "Press 4 for Accounts and Billing. "
-        #         "Press 5 for HR and Careers."
-        #     ),
+        #     "action": "stream",
+        #     "streamUrl": [f"{request.url_root}audio"],
         #     "bargeIn": True
         # },
-        {
-            "action": "stream",
-            "streamUrl": [f"{request.url_root}audio"],
-            "bargeIn": True
-        },
         {
             "action": "input",
             "eventUrl": [f"{request.url_root}menu"],
