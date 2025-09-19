@@ -31,19 +31,19 @@ def get_dtmf_from_request(req):
 # ---------- Phone directory ----------
 DEPARTMENTS = {
     "recruitment": {
-        "1": {"name": "Parth", "number": "16176395297"},
-        "2": {"name": "Samarsinh", "number": "16179567476"},
-        "3": {"name": "Sanket", "number": "16179035789"},
-        "4": {"name": "Sakshi", "number": "16174314730"},
-        "5": {"name": "Purva", "number": "16179175239"},
-        "6": {"name": "Shubham", "number": "16179821636"},
-        "7": {"name": "Swapnil", "number": "16176395960"},
-        "8": {"name": "Aayushi", "number": "16176395232"}
+        "2": {"name": "Parth", "number": "16176395297"},
+        "3": {"name": "Samarsinh", "number": "16179567476"},
+        "4": {"name": "Sanket", "number": "16179035789"},
+        "5": {"name": "Sakshi", "number": "16174314730"},
+        "6": {"name": "Purva", "number": "16179175239"},
+        "7": {"name": "Shubham", "number": "16179821636"},
+        "8": {"name": "Swapnil", "number": "16176395960"},
+        "9": {"name": "Aayushi", "number": "16176395232"}
     },
     "sales": {
         "1": {"name": "Akshata", "number": "16174151543"},
-        "2": {"name": "Karan", "number": "16179821831"},
-        "3": {"name": "Aishwarya", "number": "16178612984"}
+        "3": {"name": "Karan", "number": "16179821831"},
+        "4": {"name": "Aishwarya", "number": "16178612984"}
     },
     "it": {
         "1": {"name": "Nikhil", "number": "16179876543"},
