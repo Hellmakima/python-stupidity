@@ -31,7 +31,7 @@ def get_dtmf_from_request(req):
 # ---------- Phone directory ----------
 DEPARTMENTS = {
     "office": {
-        "1": {"name": "the office", "number": "16174316487"}
+        "1": {"name": "U Haul Shinde Properties", "number": "16174316487"}
     },
     "recruitment": {
         "1": {"name": "Parth", "number": "16176395297"},
@@ -76,7 +76,7 @@ def answer_call():
             "action": "talk",
             "text": (
                 "Thank you for calling T Cognition. "
-                "Press 0 to connect to our office in Boston. "
+                "Press 0 to connect u haul Shinde Properties l l c "
                 "Press 1 to speak with our Recruitment team. "
                 "Press 2 for Sales. "
                 "Press 3 for IT Support. "
@@ -122,7 +122,7 @@ def handle_menu():
                 "action": "talk",
                 "text": (
                     "Invalid choice. Please try again. "
-                    "Press 0 to connect to our office in Boston. "
+                    "Press 0 to connect u haul Shinde Properties l l c "
                     "Press 1 to speak with our Recruitment team. "
                     "Press 2 for Sales. "
                     "Press 3 for IT Support. "
@@ -254,4 +254,4 @@ def test():
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5050)
