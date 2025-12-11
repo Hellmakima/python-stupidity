@@ -30,20 +30,23 @@ def get_dtmf_from_request(req):
 
 # ---------- Phone directory ----------
 DEPARTMENTS = {
+    "office": {
+        "1": {"name": "the office", "number": "16174316487"}
+    },
     "recruitment": {
         "1": {"name": "Parth", "number": "16176395297"},
         "2": {"name": "Samarsinh", "number": "16179567476"},
         "3": {"name": "Sanket", "number": "16179035789"},
         "4": {"name": "Sakshi", "number": "16174314730"},
-        "5": {"name": "Purva", "number": "16179175239"},
-        "6": {"name": "Shubham", "number": "16179821636"},
-        "7": {"name": "Swapnil", "number": "16176395960"},
-        "8": {"name": "Aayushi", "number": "16176395232"}
+        # "5": {"name": "Purva", "number": "16179175239"},
+        # "6": {"name": "Shubham", "number": "16179821636"},
+        # "7": {"name": "Swapnil", "number": "16176395960"},
+        # "8": {"name": "Aayushi", "number": "16176395232"}
     },
     "sales": {
         "1": {"name": "Akshata", "number": "16174151543"},
-        "2": {"name": "Karan", "number": "16179821831"},
-        "3": {"name": "Aishwarya", "number": "16178612984"}
+        "2": {"name": "Aishwarya", "number": "16178612984"}
+        # "3": {"name": "Karan", "number": "16179821831"},
     },
     "it": {
         "1": {"name": "Nikhil", "number": "16179876543"},
@@ -56,7 +59,7 @@ DEPARTMENTS = {
         "1": {"name": "Kiran", "number": "16179821831"}
     },
     "Executive Manager": {
-        "1": {"name": "Manoj Shinde", "number": "16174384819"}
+        "1": {"name": "Manoj", "number": "16174384819"}
     }
 }
 
@@ -73,6 +76,7 @@ def answer_call():
             "action": "talk",
             "text": (
                 "Thank you for calling T Cognition. "
+                "Press 0 to connect to our office in Boston. "
                 "Press 1 to speak with our Recruitment team. "
                 "Press 2 for Sales. "
                 "Press 3 for IT Support. "
@@ -104,6 +108,7 @@ def answer_call():
 def handle_menu():
     dtmf = get_dtmf_from_request(request)
     dept_map = {
+        "0": "office",
         "1": "recruitment",
         "2": "sales",
         "3": "it",
@@ -115,7 +120,15 @@ def handle_menu():
         return jsonify([
             {
                 "action": "talk",
-                "text": "Invalid choice. Please try again."
+                "text": (
+                    "Invalid choice. Please try again. "
+                    "Press 0 to connect to our office in Boston. "
+                    "Press 1 to speak with our Recruitment team. "
+                    "Press 2 for Sales. "
+                    "Press 3 for IT Support. "
+                    "Press 4 for Accounts and Billing. "
+                    "Press 5 for HR and Careers."
+                )
             },
             {
                 "action": "input",
@@ -156,6 +169,8 @@ def handle_menu():
         ])
 
     people = DEPARTMENTS[dept]
+    if len(people) == 1:
+        return connect_person(dept, first_number=True)
 
     # Build dynamic submenu text based on available employees
     employee_text = f"You have selected the {dept.title()} Department. "
@@ -166,7 +181,7 @@ def handle_menu():
         {
             "action": "talk",
             "text": employee_text,
-            # "bargeIn": True,
+            # "bargeIn": True, # doesn't work in indian accent
             "language": "en-IN",
             "style": 1
         },
@@ -182,8 +197,11 @@ def handle_menu():
 
 # ---------- Connect caller to the selected person ----------
 @app.route("/connect/<dept>", methods=["POST"])
-def connect_person(dept):
-    dtmf = get_dtmf_from_request(request)
+def connect_person(dept, first_number=False):
+    if not first_number:
+        dtmf = get_dtmf_from_request(request)
+    else:
+        dtmf = "1"
     people = DEPARTMENTS[dept]
 
     if dtmf in people:
