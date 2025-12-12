@@ -11,7 +11,9 @@ def is_office_open(dept: str) -> bool:
     now = datetime.now(LOCAL_TZ).time()
 
     if dept in ("recruitment", "sales", "Executive Manager"):
-        return now >= time(18, 0) or now < time(3, 0)  # 6AM–3PM
+        return now >= time(19, 30) or now < time(3, 30)  # 6PM–3AM IST
+    elif dept in ("office"):
+        return now >= time(19, 0) or now < time(4, 0)  # 6PM–3AM IST
     else:
         return time(9, 0) <= now < time(21, 0)  # 9AM–9PM
 
@@ -31,7 +33,8 @@ def get_dtmf_from_request(req):
 # ---------- Phone directory ----------
 DEPARTMENTS = {
     "office": {
-        "1": {"name": "U Haul Shinde Properties", "number": "16174316487"}
+        # "1": {"name": "U Haul Shinde Properties", "number": "16174316487"}
+        "1": {"name": "U Haul Shinde Properties", "number": "16179934802"}
     },
     "recruitment": {
         "1": {"name": "Parth", "number": "16176395297"},
