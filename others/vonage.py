@@ -33,8 +33,10 @@ def get_dtmf_from_request(req):
 # ---------- Phone directory ----------
 DEPARTMENTS = {
     "office": {
-        # "1": {"name": "U Haul Shinde Properties", "number": "16174316487"}
-        "1": {"name": "U Haul Shinde Properties", "number": "16179934802"}
+        # "1": {"name": "U Haul Shinde Properties", "number": "16174316487"} # company site number
+        # "1": {"name": "U Haul Shinde Properties", "number": "16179934802"} # who knows
+        # "1": {"name": "U Haul Shinde Properties", "number": "16179339288"} # office number (loops)
+        "1": {"name": "U Haul Shinde Properties", "number": "18578320646"} # parag personal
     },
     "recruitment": {
         "1": {"name": "Parth", "number": "16176395297"},
@@ -67,9 +69,9 @@ DEPARTMENTS = {
 }
 
 
-@app.route("/audio", methods=["GET"])
-def audio():
-    return send_from_directory(".", "song.mp3")
+# @app.route("/audio", methods=["GET"])
+# def audio():
+#     return send_from_directory(".", "song.mp3")
 
 # ---------- Main IVR menu ----------
 @app.route("/answer", methods=["GET"])
@@ -79,7 +81,7 @@ def answer_call():
             "action": "talk",
             "text": (
                 "Thank you for calling T Cognition. "
-                "Press 0 to connect u haul Shinde Properties l l c "
+                "Press 0 to connect u haul Shinde Properties l l c. "
                 "Press 1 to speak with our Recruitment team. "
                 "Press 2 for Sales. "
                 "Press 3 for IT Support. "
@@ -125,7 +127,7 @@ def handle_menu():
                 "action": "talk",
                 "text": (
                     "Invalid choice. Please try again. "
-                    "Press 0 to connect u haul Shinde Properties l l c "
+                    "Press 0 to connect u haul Shinde Properties l l c. "
                     "Press 1 to speak with our Recruitment team. "
                     "Press 2 for Sales. "
                     "Press 3 for IT Support. "
