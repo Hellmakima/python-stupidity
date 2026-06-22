@@ -1,2 +1,3 @@
 # python-stupidity
-personal projects (failed, incomplete or half-ass implementations)
+Random scripts/apps the do not deserve a whole repo.
+Some are failed, incomplete or half implementations of ideas.
